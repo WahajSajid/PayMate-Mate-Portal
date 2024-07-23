@@ -11,7 +11,4 @@ class StateViewModel:ViewModel() {
     private val _mateIdTextFieldState = mutableStateOf("")
     var mateIdTextFieldState = _mateIdTextFieldState
 
-    private val _state = mutableStateOf("")
-    var state = _state
-
 }

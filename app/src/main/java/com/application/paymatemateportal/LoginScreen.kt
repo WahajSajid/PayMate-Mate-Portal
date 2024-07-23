@@ -1,7 +1,5 @@
 package com.application.paymatemateportal
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,27 +8,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlin.math.round
 
 
 @Preview(showSystemUi = true)
@@ -51,18 +47,65 @@ fun LoginScreen(modifier: Modifier = Modifier, stateViewModel: StateViewModel = 
     })
     {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 10.dp, top = 210.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "Welcome! ",
+                fontWeight = FontWeight.Bold,
+                fontSize = 30.sp,
+                fontFamily = FontFamily.Cursive
+            )
+        }
+        Column(
+            modifier = Modifier
+                .padding(top = 150.dp)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
-            TextInputsComposable(value = "admin")
+            Text(
+                text = "Hey, Mate \uD83D\uDC4B",
+                modifier = Modifier.padding(start = 10.dp),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                fontFamily = FontFamily.Serif
+            )
+            TextInputsComposable(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                    .border(
+                        width = 1.dp,
+                        color = colorResource(id = R.color.app_theme_color),
+                        shape = RoundedCornerShape(26.dp)
+                    ), value = "admin"
+            )
+
+            TextInputsComposable(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                    .border(
+                        width = 1.dp,
+                        color = colorResource(id = R.color.app_theme_color),
+                        shape = RoundedCornerShape(26.dp)
+                    ), value = "mate"
+            )
+
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TextInputsComposable(value: String, stateViewModel: StateViewModel = viewModel()) {
+fun TextInputsComposable(
+    modifier: Modifier = Modifier,
+    value: String,
+    stateViewModel: StateViewModel = viewModel(),
+) {
     TextField(
         value = if (value == "admin") stateViewModel.adminUidTextState.value else stateViewModel.mateIdTextFieldState.value,
         onValueChange = {
@@ -77,16 +120,14 @@ fun TextInputsComposable(value: String, stateViewModel: StateViewModel = viewMod
             )
         },
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedTextColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
         ),
         placeholder = { if (value == "admin") Text(text = "Admin Id") else Text(text = "Mate Id") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(15.dp)
-            .border(width = 1.dp, color = colorResource(id = R.color.app_theme_color), shape = RoundedCornerShape(16.dp))
+        modifier = modifier
 
     )
 }
