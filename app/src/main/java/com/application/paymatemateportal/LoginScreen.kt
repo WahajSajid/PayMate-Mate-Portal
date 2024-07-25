@@ -1,15 +1,27 @@
 package com.application.paymatemateportal
 
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -17,89 +29,183 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.application.paymatemateportal.ui.theme.PayMateMatePortalTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Preview(showSystemUi = true)
 @Composable
 private fun Preview() {
-    LoginScreen(modifier = Modifier.fillMaxSize())
+    LoginScreen(modifier = Modifier.fillMaxSize(), snackBarHostState = SnackbarHostState())
 }
 
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier, stateViewModel: StateViewModel = viewModel()) {
-    Box(modifier = with(modifier) {
-        fillMaxSize()
-            .paint(
-                painterResource(R.drawable.background),
-                contentScale = ContentScale.FillBounds
-            )
-    })
-    {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 10.dp, top = 210.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.End
-        ) {
-            Text(
-                text = "Welcome! ",
-                fontWeight = FontWeight.Bold,
-                fontSize = 30.sp,
-                fontFamily = FontFamily.Cursive
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    stateViewModel: StateViewModel = viewModel(),
+    snackBarHostState: SnackbarHostState,
+) {
+    val context = LocalContext.current
+    Scaffold(snackbarHost = {
+        PayMateMatePortalTheme {
+            SnackbarHost(
+                hostState = snackBarHostState,
             )
         }
-        Column(
-            modifier = Modifier
-                .padding(top = 150.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center
+    }, floatingActionButton = {
+        ExtendedFloatingActionButton(
+            onClick = {
+                if (!inputFieldsEmptyOrNot(
+                        stateViewModel.adminUidTextState.value,
+                        stateViewModel.mateIdTextFieldState.value
+                    )
+                ) {
+                    if (NetworkUtil.isNetworkAvailable(context)) {
+                        stateViewModel.showDialog.value = true
+                        HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
+                            override fun onInternetAvailable() {
+                                stateViewModel.showDialog.value = false
+                            }
+
+                            override fun onInternetNotAvailable() {
+                                stateViewModel.showSnackBar.value = true
+                                stateViewModel.showDialog.value = false
+                                showSnackBar(
+                                    snackBarHostState,
+                                    stateViewModel,
+                                    message = "Connection timeout, check your internet connection and try again."
+                                )
+                            }
+                        })
+
+                    } else {
+                        stateViewModel.showSnackBar.value = true
+                        showSnackBar(
+                            snackBarHostState,
+                            stateViewModel,
+                            message = "No Internet, Please connect to the internet and try again."
+                        )
+                    }
+                } else Toast.makeText(context, "Please fill all the fields ", Toast.LENGTH_SHORT)
+                    .show()
+            },
+            containerColor = colorResource(id = R.color.app_theme_color),
         ) {
             Text(
-                text = "Hey, Mate \uD83D\uDC4B",
-                modifier = Modifier.padding(start = 10.dp),
+                text = "Login",
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
                 fontFamily = FontFamily.Serif
             )
-            TextInputsComposable(
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_login_24),
+                contentDescription = "Login"
+            )
+        }
+    }) { paddingValues ->
+        if (stateViewModel.showDialog.value) DialogBox()
+        Box(modifier = with(modifier.padding(paddingValues)) {
+            fillMaxSize()
+                .paint(
+                    painterResource(R.drawable.background),
+                    contentScale = ContentScale.FillBounds
+                )
+        })
+        {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 30.dp, start = 15.dp, end = 15.dp)
-                    .border(
-                        width = 1.dp,
-                        color = colorResource(id = R.color.app_theme_color),
-                        shape = RoundedCornerShape(26.dp)
-                    ), value = "admin"
-            )
-
-            TextInputsComposable(
+                    .padding(end = 10.dp, top = 210.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "Welcome! ",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    fontFamily = FontFamily.Cursive
+                )
+            }
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 30.dp, start = 15.dp, end = 15.dp)
-                    .border(
-                        width = 1.dp,
-                        color = colorResource(id = R.color.app_theme_color),
-                        shape = RoundedCornerShape(26.dp)
-                    ), value = "mate"
-            )
+                    .padding(top = 150.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Hey, Mate \uD83D\uDC4B",
+                    modifier = Modifier.padding(start = 10.dp),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily.Serif
+                )
+                TextInputsComposable(
+                    modifier = Modifier
+                        .focusRequester(stateViewModel.focusRequester1)
+                        .fillMaxWidth()
+                        .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                        .border(
+                            width = 1.dp,
+                            color = colorResource(id = R.color.app_theme_color),
+                            shape = RoundedCornerShape(26.dp)
+                        ), value = "admin"
+                )
 
+                TextInputsComposable(
+                    modifier = Modifier
+                        .focusRequester(stateViewModel.focusRequester2)
+                        .fillMaxWidth()
+                        .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                        .border(
+                            width = 1.dp,
+                            color = colorResource(id = R.color.app_theme_color),
+                            shape = RoundedCornerShape(26.dp)
+                        ), value = "mate"
+                )
+
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun showSnackBar(
+    hostState: SnackbarHostState,
+    stateViewModel: StateViewModel,
+    message: String,
+) {
+    CoroutineScope(Dispatchers.Main).launch {
+        if (stateViewModel.showSnackBar.value) {
+            hostState.showSnackbar(message)
+            stateViewModel.showSnackBar.value = false
+        }
+    }
+}
+
+private fun inputFieldsEmptyOrNot(
+    adminId: String,
+    mateId: String,
+): Boolean {
+    val empty: Boolean = adminId == "" || mateId == ""
+    return empty
+}
+
 @Composable
 fun TextInputsComposable(
     modifier: Modifier = Modifier,
@@ -127,7 +233,42 @@ fun TextInputsComposable(
             disabledIndicatorColor = Color.Transparent,
         ),
         placeholder = { if (value == "admin") Text(text = "Admin Id") else Text(text = "Mate Id") },
-        modifier = modifier
+        modifier = modifier,
+        keyboardOptions = if (value == "admin") KeyboardOptions.Default.copy(imeAction = ImeAction.Next) else KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = if (value == "admin") KeyboardActions(onNext = { stateViewModel.focusRequester2.requestFocus() }) else KeyboardActions(
+            onDone = null
+        )
 
     )
+}
+
+@Preview
+@Composable
+fun DialogBox(message: String = "Signing in...", stateViewModel: StateViewModel = viewModel()) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false)
+    ) {
+        Card(modifier = Modifier.width(150.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(5.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .height(25.dp)
+                        .width(25.dp),
+                    color = colorResource(id = R.color.app_theme_color),
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+                Text(
+                    text = message, fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 15.dp)
+                )
+            }
+        }
+    }
 }
