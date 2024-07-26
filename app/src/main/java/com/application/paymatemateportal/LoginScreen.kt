@@ -67,134 +67,151 @@ fun LoginScreen(
     stateViewModel: StateViewModel = viewModel(),
     snackBarHostState: SnackbarHostState,
 ) {
-    val context = LocalContext.current
-    Scaffold(snackbarHost = {
-        PayMateMatePortalTheme {
-            SnackbarHost(
-                hostState = snackBarHostState,
-            )
-        }
-    }, floatingActionButton = {
-        ExtendedFloatingActionButton(
-            onClick = {
-                if (!inputFieldsEmptyOrNot(
-                        stateViewModel.adminUidTextState.value,
-                        stateViewModel.mateIdTextFieldState.value
-                    )
-                ) {
-                    if (NetworkUtil.isNetworkAvailable(context)) {
-                        stateViewModel.showDialog.value = true
-                        HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
-                            override fun onInternetAvailable() {
-                                loginMate(stateViewModel.mateIdTextFieldState.value,stateViewModel.adminUidTextState.value,context,database,object:LoginSuccessfulCallBack{
-                                    override fun onLoginSuccessful() {
-                                        stateViewModel.showDialog.value = false
-                                        stateViewModel.showSnackBar.value = true
-                                        showSnackBar(snackBarHostState,stateViewModel, message = "Login Successful")
-                                    }
-
-                                    override fun onLoginFailed() {
-                                        stateViewModel.showDialog.value = false
-                                        stateViewModel.showSnackBar.value = true
-                                        showSnackBar(snackBarHostState,stateViewModel, message = "Invalid credentials supplied.")
-                                    }
-                                })
-                            }
-
-                            override fun onInternetNotAvailable() {
-                                stateViewModel.showSnackBar.value = true
-                                stateViewModel.showDialog.value = false
-                                showSnackBar(
-                                    snackBarHostState,
-                                    stateViewModel,
-                                    message = "Connection timeout, check your internet connection and try again."
-                                )
-                            }
-                        })
-
-                    } else {
-                        stateViewModel.showSnackBar.value = true
-                        showSnackBar(
-                            snackBarHostState,
-                            stateViewModel,
-                            message = "No Internet, Please connect to the internet and try again."
-                        )
-                    }
-                } else Toast.makeText(context, "Please fill all the fields ", Toast.LENGTH_SHORT)
-                    .show()
-            },
-            containerColor = colorResource(id = R.color.app_theme_color),
-        ) {
-            Text(
-                text = "Login",
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_login_24),
-                contentDescription = "Login"
-            )
-        }
-    }) { paddingValues ->
-        if (stateViewModel.showDialog.value) DialogBox()
-        Box(modifier = with(modifier.padding(paddingValues)) {
-            fillMaxSize()
-                .paint(
-                    painterResource(R.drawable.background),
-                    contentScale = ContentScale.FillBounds
-                )
-        })
-        {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 10.dp, top = 210.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "Welcome! ",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    fontFamily = FontFamily.Cursive
+    if (stateViewModel.loginSuccessful.value) {
+        MateDashboard()
+    } else {
+        val context = LocalContext.current
+        Scaffold(snackbarHost = {
+            PayMateMatePortalTheme {
+                SnackbarHost(
+                    hostState = snackBarHostState,
                 )
             }
-            Column(
-                modifier = Modifier
-                    .padding(top = 150.dp)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center
+        }, floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    if (!inputFieldsEmptyOrNot(
+                            stateViewModel.adminUidTextState.value,
+                            stateViewModel.mateIdTextFieldState.value
+                        )
+                    ) {
+                        if (NetworkUtil.isNetworkAvailable(context)) {
+                            stateViewModel.showDialog.value = true
+                            HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
+                                override fun onInternetAvailable() {
+                                    loginMate(
+                                        stateViewModel.mateIdTextFieldState.value,
+                                        stateViewModel.adminUidTextState.value,
+                                        context,
+                                        database,
+                                        object : LoginSuccessfulCallBack {
+                                            override fun onLoginSuccessful() {
+                                                stateViewModel.showDialog.value = false
+                                                stateViewModel.showSnackBar.value = true
+                                                stateViewModel.loginSuccessful.value = true
+                                            }
+
+                                            override fun onLoginFailed() {
+                                                stateViewModel.showDialog.value = false
+                                                stateViewModel.showSnackBar.value = true
+                                                showSnackBar(
+                                                    snackBarHostState,
+                                                    stateViewModel,
+                                                    message = "Invalid credentials supplied."
+                                                )
+                                            }
+                                        })
+                                }
+
+                                override fun onInternetNotAvailable() {
+                                    stateViewModel.showSnackBar.value = true
+                                    stateViewModel.showDialog.value = false
+                                    showSnackBar(
+                                        snackBarHostState,
+                                        stateViewModel,
+                                        message = "Connection timeout, check your internet connection and try again."
+                                    )
+                                }
+                            })
+
+                        } else {
+                            stateViewModel.showSnackBar.value = true
+                            showSnackBar(
+                                snackBarHostState,
+                                stateViewModel,
+                                message = "No Internet, Please connect to the internet and try again."
+                            )
+                        }
+                    } else Toast.makeText(
+                        context,
+                        "Please fill all the fields ",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                },
+                containerColor = colorResource(id = R.color.app_theme_color),
             ) {
                 Text(
-                    text = "Hey, Mate \uD83D\uDC4B",
-                    modifier = Modifier.padding(start = 10.dp),
+                    text = "Login",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
                     fontFamily = FontFamily.Serif
                 )
-                TextInputsComposable(
-                    modifier = Modifier
-                        .focusRequester(stateViewModel.focusRequester1)
-                        .fillMaxWidth()
-                        .padding(top = 30.dp, start = 15.dp, end = 15.dp)
-                        .border(
-                            width = 1.dp,
-                            color = colorResource(id = R.color.app_theme_color),
-                            shape = RoundedCornerShape(26.dp)
-                        ), value = "admin"
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_login_24),
+                    contentDescription = "Login"
                 )
-                TextInputsComposable(
+            }
+        }) { paddingValues ->
+            if (stateViewModel.showDialog.value) DialogBox()
+            Box(modifier = with(modifier.padding(paddingValues)) {
+                fillMaxSize()
+                    .paint(
+                        painterResource(R.drawable.background),
+                        contentScale = ContentScale.FillBounds
+                    )
+            })
+            {
+                Column(
                     modifier = Modifier
-                        .focusRequester(stateViewModel.focusRequester2)
                         .fillMaxWidth()
-                        .padding(top = 30.dp, start = 15.dp, end = 15.dp)
-                        .border(
-                            width = 1.dp,
-                            color = colorResource(id = R.color.app_theme_color),
-                            shape = RoundedCornerShape(26.dp)
-                        ), value = "mate"
-                )
+                        .padding(end = 10.dp, top = 210.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "Welcome! ",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp,
+                        fontFamily = FontFamily.Cursive
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(top = 150.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Hey, Mate \uD83D\uDC4B",
+                        modifier = Modifier.padding(start = 10.dp),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        fontFamily = FontFamily.Serif
+                    )
+                    TextInputsComposable(
+                        modifier = Modifier
+                            .focusRequester(stateViewModel.focusRequester1)
+                            .fillMaxWidth()
+                            .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                            .border(
+                                width = 1.dp,
+                                color = colorResource(id = R.color.app_theme_color),
+                                shape = RoundedCornerShape(26.dp)
+                            ), value = "admin"
+                    )
+                    TextInputsComposable(
+                        modifier = Modifier
+                            .focusRequester(stateViewModel.focusRequester2)
+                            .fillMaxWidth()
+                            .padding(top = 30.dp, start = 15.dp, end = 15.dp)
+                            .border(
+                                width = 1.dp,
+                                color = colorResource(id = R.color.app_theme_color),
+                                shape = RoundedCornerShape(26.dp)
+                            ), value = "mate"
+                    )
 
+                }
             }
         }
     }
@@ -205,7 +222,7 @@ private fun loginMate(
     adminId: String,
     context: Context,
     database: FirebaseDatabase,
-    callBack: LoginSuccessfulCallBack
+    callBack: LoginSuccessfulCallBack,
 ) {
     val sharedPreferences =
         context.getSharedPreferences("com.application.paymatemateportal", MODE_PRIVATE)

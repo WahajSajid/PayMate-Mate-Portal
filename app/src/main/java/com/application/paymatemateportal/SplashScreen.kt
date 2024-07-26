@@ -29,7 +29,8 @@ private fun Preview() {
 fun SplashScreen(modifier: Modifier = Modifier) {
     Scaffold { paddingValues ->
         Column(
-            modifier = modifier.padding(paddingValues),
+            modifier = modifier
+                .padding(paddingValues),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
