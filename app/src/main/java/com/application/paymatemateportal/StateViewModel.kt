@@ -19,6 +19,10 @@ class StateViewModel : ViewModel() {
     private val _showDialog = mutableStateOf(false)
     var showDialog = _showDialog
 
+
+    private val  _loginMate = mutableStateOf(false)
+    val loginMate = _loginMate
+
     val focusRequester1 =  FocusRequester()
     val focusRequester2 =  FocusRequester()
 

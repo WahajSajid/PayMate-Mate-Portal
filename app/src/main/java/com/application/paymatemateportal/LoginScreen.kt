@@ -1,5 +1,7 @@
 package com.application.paymatemateportal
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.application.paymatemateportal.ui.theme.PayMateMatePortalTheme
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,6 +63,7 @@ private fun Preview() {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    database: FirebaseDatabase = FirebaseDatabase.getInstance(),
     stateViewModel: StateViewModel = viewModel(),
     snackBarHostState: SnackbarHostState,
 ) {
@@ -82,7 +86,19 @@ fun LoginScreen(
                         stateViewModel.showDialog.value = true
                         HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
                             override fun onInternetAvailable() {
-                                stateViewModel.showDialog.value = false
+                                loginMate(stateViewModel.mateIdTextFieldState.value,stateViewModel.adminUidTextState.value,context,database,object:LoginSuccessfulCallBack{
+                                    override fun onLoginSuccessful() {
+                                        stateViewModel.showDialog.value = false
+                                        stateViewModel.showSnackBar.value = true
+                                        showSnackBar(snackBarHostState,stateViewModel, message = "Login Successful")
+                                    }
+
+                                    override fun onLoginFailed() {
+                                        stateViewModel.showDialog.value = false
+                                        stateViewModel.showSnackBar.value = true
+                                        showSnackBar(snackBarHostState,stateViewModel, message = "Invalid credentials supplied.")
+                                    }
+                                })
                             }
 
                             override fun onInternetNotAvailable() {
@@ -167,7 +183,6 @@ fun LoginScreen(
                             shape = RoundedCornerShape(26.dp)
                         ), value = "admin"
                 )
-
                 TextInputsComposable(
                     modifier = Modifier
                         .focusRequester(stateViewModel.focusRequester2)
@@ -182,6 +197,40 @@ fun LoginScreen(
 
             }
         }
+    }
+}
+
+private fun loginMate(
+    mateId: String,
+    adminId: String,
+    context: Context,
+    database: FirebaseDatabase,
+    callBack: LoginSuccessfulCallBack
+) {
+    val sharedPreferences =
+        context.getSharedPreferences("com.application.paymatemateportal", MODE_PRIVATE)
+    val enteredMateUid = mateId.trim()
+    val enteredAdminUid = adminId.trim()
+    val matePath = "Mate: $enteredMateUid"
+    val databaseReference =
+        database.getReference("admin_profiles").child(enteredAdminUid).child("Mates")
+            .child(matePath)
+    databaseReference.child("mate_id").get().addOnSuccessListener {
+        val id = it.value.toString()
+        if (enteredMateUid == id) {
+            sharedPreferences.edit().putString("id", id).apply()
+            sharedPreferences.edit().putString("uid", enteredAdminUid).apply()
+            sharedPreferences.edit().putBoolean("mate_loggedIn", true).apply()
+            val getData =
+                GetDataFromDatabase.GetDataFromDatabase(databaseReference, sharedPreferences)
+            getData.getAllData()
+            callBack.onLoginSuccessful()
+        } else {
+            callBack.onLoginFailed()
+        }
+    }
+    databaseReference.get().addOnFailureListener {
+        Toast.makeText(context, it.message.toString(), Toast.LENGTH_SHORT).show()
     }
 }
 
