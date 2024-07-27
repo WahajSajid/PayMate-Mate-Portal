@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,36 +49,36 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
                 val snackBarHostState = remember { SnackbarHostState() }
-                    LaunchedEffect(Unit) {
-                        delay(2000)
-                        showSplash = false
-                    }
-                    AnimatedVisibility(
-                        visible = showSplash,
-                        enter = scaleIn(),
-                        exit = scaleOut()
-                    ) {
-                        SplashScreen(
-                            modifier = Modifier
-                                .padding()
-                                .fillMaxSize()
+                LaunchedEffect(Unit) {
+                    delay(2000)
+                    showSplash = false
+                }
+                AnimatedVisibility(
+                    visible = showSplash,
+                    enter = scaleIn(),
+                    exit = scaleOut()
+                ) {
+                    SplashScreen(
+                        modifier = Modifier
+                            .padding()
+                            .fillMaxSize()
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = !showSplash,
+                    enter = scaleIn()
+                ) {
+                    if (isLoggedIn) {
+                        MateDashboard()
+                    } else {
+                        LoginScreen(
+                            modifier = Modifier.padding(),
+                            database,
+                            snackBarHostState = snackBarHostState
                         )
                     }
-
-                    AnimatedVisibility(
-                        visible = !showSplash,
-                        enter = scaleIn()
-                    ) {
-                        if(isLoggedIn){
-                            MateDashboard()
-                        } else{
-                            LoginScreen(
-                                modifier = Modifier.padding(),
-                                database,
-                                snackBarHostState = snackBarHostState
-                            )
-                        }
-                    }
+                }
             }
         }
     }

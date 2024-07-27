@@ -9,4 +9,11 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="app_theme_color">#FFA500</color>
+    <color name="background_color">#EAC88D</color>
+    <color name="start_color">#FFA500</color>
+    <color name="center_color">#F8C670</color>
+    <color name="end_color">#E8BB31</color>
+
+
+
 </resources>
