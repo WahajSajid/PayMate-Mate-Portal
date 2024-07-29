@@ -22,24 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import com.application.paymatemateportal.ui.theme.PayMateMatePortalTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
-import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
+
     @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val options = FirebaseOptions.Builder()
-            .setApiKey("AIzaSyAZXl3iFNajkQTV3evrq3OM5G5Qb29taNo")
-            .setApplicationId("1:454928281130:android:27a25a82d8d181ae7d1d53")
-            .setDatabaseUrl("https://paymate-e1dab-default-rtdb.firebaseio.com")
-            .build()
-        val app = FirebaseApp.initializeApp(this, options)
-        val database = FirebaseDatabase.getInstance(app)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+
             val sharedPreferences =
                 getSharedPreferences("com.application.paymatemateportal", MODE_PRIVATE)
             val isLoggedIn = sharedPreferences.getBoolean("mate_loggedIn", false)
@@ -74,7 +66,6 @@ class MainActivity : ComponentActivity() {
                     } else {
                         LoginScreen(
                             modifier = Modifier.padding(),
-                            database,
                             snackBarHostState = snackBarHostState
                         )
                     }

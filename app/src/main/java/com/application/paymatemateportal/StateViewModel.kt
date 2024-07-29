@@ -1,10 +1,10 @@
 package com.application.paymatemateportal
-
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.ViewModel
 
 class StateViewModel : ViewModel() {
+
 
     //Login Screen States
     private val _adminUidTextState = mutableStateOf("")

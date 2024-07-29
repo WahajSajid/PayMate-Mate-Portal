@@ -1,5 +1,6 @@
 package com.application.paymatemateportal
 
+import android.app.Application
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.widget.Toast
@@ -63,7 +64,6 @@ private fun Preview() {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    database: FirebaseDatabase = FirebaseDatabase.getInstance(),
     stateViewModel: StateViewModel = viewModel(),
     snackBarHostState: SnackbarHostState,
 ) {
@@ -71,6 +71,8 @@ fun LoginScreen(
         MateDashboard()
     } else {
         val context = LocalContext.current
+        val viewModel :FirebaseViewModel = viewModel(factory = FirebaseViewModelFactory(context.applicationContext as App))
+        val database = viewModel.database
         Scaffold(snackbarHost = {
             PayMateMatePortalTheme {
                 SnackbarHost(
