@@ -18,8 +18,8 @@ class StateViewModel : ViewModel() {
     private val _showSnackBar = mutableStateOf(false)
     var showSnackBar  = _showSnackBar
 
-    private val _showDialog = mutableStateOf(false)
-    var showDialog = _showDialog
+    private val _showSigningInDialog = mutableStateOf(false)
+    var showSigningInDialog = _showSigningInDialog
 
 
     private val  _loginSuccessful = mutableStateOf(false)
@@ -54,6 +54,9 @@ class StateViewModel : ViewModel() {
 
     private val _accessDeniedDialogMessage = mutableStateOf("")
     var accessDeniedDialogMessage = _accessDeniedDialogMessage
+
+    private val _showLoadingDataDialog = mutableStateOf(true)
+    var showLoadingDataDialog = _showLoadingDataDialog
 
     private val _id = mutableStateOf("")
     var mate_id = _id

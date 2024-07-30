@@ -89,7 +89,7 @@ fun LoginScreen(
                     ) {
                         if (NetworkUtil.isNetworkAvailable(context)) {
                             stateViewModel.dialogTitle.value = "Signing in..."
-                            stateViewModel.showDialog.value = true
+                            stateViewModel.showSigningInDialog.value = true
                             HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
                                 override fun onInternetAvailable() {
                                     loginMate(
@@ -99,13 +99,13 @@ fun LoginScreen(
                                         database,
                                         object : LoginSuccessfulCallBack {
                                             override fun onLoginSuccessful() {
-                                                stateViewModel.showDialog.value = false
+                                                stateViewModel.showSigningInDialog.value = false
                                                 stateViewModel.showSnackBar.value = true
                                                 stateViewModel.loginSuccessful.value = true
                                             }
 
                                             override fun onLoginFailed() {
-                                                stateViewModel.showDialog.value = false
+                                                stateViewModel.showSigningInDialog.value = false
                                                 stateViewModel.showSnackBar.value = true
                                                 showSnackBar(
                                                     snackBarHostState,
@@ -118,7 +118,7 @@ fun LoginScreen(
 
                                 override fun onInternetNotAvailable() {
                                     stateViewModel.showSnackBar.value = true
-                                    stateViewModel.showDialog.value = false
+                                    stateViewModel.showSigningInDialog.value = false
                                     showSnackBar(
                                         snackBarHostState,
                                         stateViewModel,
@@ -155,7 +155,7 @@ fun LoginScreen(
                 )
             }
         }) { paddingValues ->
-            if (stateViewModel.showDialog.value) DialogBox()
+            if (stateViewModel.showSigningInDialog.value) DialogBox()
             Box(modifier = with(modifier.padding(paddingValues)) {
                 fillMaxSize()
                     .paint(

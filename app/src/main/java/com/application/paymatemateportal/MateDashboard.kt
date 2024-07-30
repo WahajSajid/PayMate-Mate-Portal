@@ -1,5 +1,6 @@
 package com.application.paymatemateportal
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
@@ -65,7 +66,11 @@ private fun Preview() {
 
 
 @Composable
-fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel = viewModel(),snackBarHostState: SnackbarHostState) {
+fun MateDashboard(
+    modifier: Modifier = Modifier,
+    stateViewModel: StateViewModel = viewModel(),
+    snackBarHostState: SnackbarHostState,
+) {
     val context = LocalContext.current
     val viewModel: FirebaseViewModel =
         viewModel(factory = FirebaseViewModelFactory(context.applicationContext as App))
@@ -73,7 +78,7 @@ fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel 
     val sharedPreferences =
         context.getSharedPreferences("com.application.paymatemateportal", MODE_PRIVATE)
     //Getting id and adminUid from sharedPreferences
-    val id = sharedPreferences.getString("id", "null").toString()
+    val id = sharedPreferences.getString("mate_id", "null").toString()
     val adminUid = sharedPreferences.getString("uid", "null").toString()
     val matePath = "Mate: $id"
     Scaffold(topBar = {
@@ -95,7 +100,18 @@ fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel 
                 modifier = Modifier.padding(start = 5.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { }) {
+            IconButton(onClick = {
+                stateViewModel.showLoadingDataDialog.value = true
+                mateAvailableOrNot(
+                    adminUid,
+                    matePath,
+                    context,
+                    database,
+                    sharedPreferences,
+                    stateViewModel,
+                    snackBarHostState
+                )
+            }) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_refresh_24),
                     contentDescription = "Refresh"
@@ -109,10 +125,22 @@ fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel 
             )
         }
     }) { paddingValues ->
+
+
         stateViewModel.dialogTitle.value = "Loading data..."
-        stateViewModel.showDialog.value = true
-        mateAvailableOrNot(adminUid,matePath,context,database,sharedPreferences,stateViewModel, snackBarHostState)
-        if(stateViewModel.showAccessDeniedDialog.value){
+        if (stateViewModel.showLoadingDataDialog.value) {
+            DialogBox()
+        }
+        mateAvailableOrNot(
+            adminUid,
+            matePath,
+            context,
+            database,
+            sharedPreferences,
+            stateViewModel,
+            snackBarHostState
+        )
+        if (stateViewModel.showAccessDeniedDialog.value) {
             ShowAlertDialog()
         }
         Column(
@@ -123,7 +151,7 @@ fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Wahaj Sajid", style = MaterialTheme.typography.h5,
+                text = stateViewModel.name.value, style = MaterialTheme.typography.h5,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 15.dp)
             )
@@ -134,7 +162,7 @@ fun MateDashboard(modifier: Modifier = Modifier, stateViewModel: StateViewModel 
                     .size(100.dp)
             )
             Text(
-                text = "wahaj@1",
+                text = stateViewModel.mate_id.value,
                 style = MaterialTheme.typography.subtitle1,
                 modifier = Modifier.padding(top = 5.dp)
             )
@@ -169,47 +197,52 @@ fun CardPreview() {
 
 @Composable
 fun CardComposable(heading: String = "Wallet:", amount: String = "3000") {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(90.dp)
-    ) {
-        Column(
+    Column (modifier = Modifier.padding(20.dp)){
+
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(90.dp)
-                .background(
-                    brush = Brush.linearGradient
-                        (
-                        colors = listOf(
-                            colorResource(id = R.color.start_color),
-                            colorResource(id = R.color.center_color),
-                            colorResource(id = R.color.end_color),
-                        ),
-                        start = Offset(50f, 20f),
-                        end = Offset(50f, 20f)
-                    )
-                )
         ) {
-            Text(
-                text = heading, style = MaterialTheme.typography.h5,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif
-            )
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .background(
+                        brush = Brush.linearGradient
+                            (
+                            colors = listOf(
+                                colorResource(id = R.color.start_color),
+                                colorResource(id = R.color.center_color),
+                                colorResource(id = R.color.end_color),
+                            ),
+                            start = Offset(50f, 20f),
+                            end = Offset(50f, 20f)
+                        )
+                    )
             ) {
-                Text(text = "Rs: ", fontFamily = FontFamily.Cursive)
                 Text(
-                    text = amount,
-                    style = MaterialTheme.typography.h5,
-                    fontFamily = FontFamily.Monospace
+                    text = heading, style = MaterialTheme.typography.h5,
+                    modifier = Modifier.padding(start = 7.dp,top = 7.dp),
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif
                 )
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = "Rs: ", fontFamily = FontFamily.Cursive, fontSize = 18.sp)
+                    Text(
+                        text = amount,
+                        style = MaterialTheme.typography.h5,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
             }
         }
     }
+
 }
 
 //This function will show the data which has been fetched from the database when the mate login.
@@ -226,15 +259,13 @@ private fun showExistingData(
 
 //This function will show load will call the function to load the data for each.
 private fun loadData(
+    adminUid: String,
+    matePath: String,
     database: FirebaseDatabase,
     sharedPreferences: SharedPreferences,
     context: Context,
     stateViewModel: StateViewModel,
 ) {
-    //Getting id and adminUid from sharedPreferences
-    val id = sharedPreferences.getString("id", "null").toString()
-    val adminUid = sharedPreferences.getString("uid", "null").toString()
-    val matePath = "Mate: $id"
     val databaseReference =
         database.getReference("admin_profiles").child(adminUid).child("Mates").child(matePath)
     val pathStrings = arrayOf("name", "wallet_amount", "rent_amount", "other_amount", "mate_id")
@@ -299,14 +330,24 @@ private fun mateAvailableOrNot(
                             if (snapshot.exists()) {
 
                                 if (snapshot.child("Mates").child(matePath).exists()) {
-                                    loadData(database, sharedPreferences, context, stateViewModel)
+                                    loadData(
+                                        adminUid,
+                                        matePath,
+                                        database,
+                                        sharedPreferences,
+                                        context,
+                                        stateViewModel
+                                    )
+                                    stateViewModel.showLoadingDataDialog.value = false
                                 } else {
                                     stateViewModel.showAccessDeniedDialog.value = true
-                                    stateViewModel.accessDeniedDialogMessage.value = "We are sorry, Admin has been removed you."
+                                    stateViewModel.accessDeniedDialogMessage.value =
+                                        "We are sorry, Admin has been removed you."
                                 }
                             } else {
-                               stateViewModel.showAccessDeniedDialog.value = true
-                                stateViewModel.accessDeniedDialogMessage.value = "We are sorry, Admin have been deleted the account."
+                                stateViewModel.showAccessDeniedDialog.value = true
+                                stateViewModel.accessDeniedDialogMessage.value =
+                                    "We are sorry, Admin have been deleted the account."
                             }
                         }
 
@@ -320,7 +361,7 @@ private fun mateAvailableOrNot(
 
             override fun onInternetNotAvailable() {
                 CoroutineScope(Dispatchers.Main).launch {
-                    stateViewModel.showDialog.value = false
+                    stateViewModel.showLoadingDataDialog.value = false
                     stateViewModel.showSnackBar.value = true
                     showSnackBar(
                         hostState,
@@ -338,8 +379,8 @@ private fun mateAvailableOrNot(
             stateViewModel,
             "No Internet, Please connect to the internet and refresh again"
         )
-        stateViewModel.showDialog.value = false
-        showExistingData(sharedPreferences,stateViewModel)
+        stateViewModel.showLoadingDataDialog.value = false
+        showExistingData(sharedPreferences, stateViewModel)
     }
 
 }
@@ -354,13 +395,21 @@ fun AlertDialogPreview() {
 fun ShowAlertDialog(
     stateViewModel: StateViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = {},
         properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         buttons = {
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 TextButton(
-                    onClick = { stateViewModel.accessDenied.value = true },
+                    onClick = {
+                        val sharedPreferences = context.getSharedPreferences(
+                            "com.application.paymatemateportal",
+                            MODE_PRIVATE
+                        )
+                        sharedPreferences.edit().putBoolean("mate_loggedIn", false).apply()
+                        stateViewModel.accessDenied.value = true
+                    },
                 ) {
                     Text(text = "Ok")
                 }

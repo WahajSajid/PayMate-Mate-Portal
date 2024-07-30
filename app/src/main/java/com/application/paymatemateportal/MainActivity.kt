@@ -20,6 +20,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.application.paymatemateportal.ui.theme.PayMateMatePortalTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
+            val stateViewModel = ViewModelProvider(this)[StateViewModel::class.java]
             val sharedPreferences =
                 getSharedPreferences("com.application.paymatemateportal", MODE_PRIVATE)
             val isLoggedIn = sharedPreferences.getBoolean("mate_loggedIn", false)
@@ -41,35 +43,40 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(true)
                 }
                 val snackBarHostState = remember { SnackbarHostState() }
-                LaunchedEffect(Unit) {
-                    delay(2000)
-                    showSplash = false
-                }
-                AnimatedVisibility(
-                    visible = showSplash,
-                    enter = scaleIn(),
-                    exit = scaleOut()
-                ) {
-                    SplashScreen(
-                        modifier = Modifier
-                            .padding()
-                            .fillMaxSize()
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = !showSplash,
-                    enter = scaleIn()
-                ) {
-                    if (isLoggedIn) {
-                        MateDashboard(snackBarHostState = SnackbarHostState())
-                    } else {
-                        LoginScreen(
-                            modifier = Modifier.padding(),
-                            snackBarHostState = snackBarHostState
+                if (stateViewModel.accessDenied.value) {
+                    LoginScreen(snackBarHostState = snackBarHostState)
+                } else {
+                    LaunchedEffect(Unit) {
+                        delay(2000)
+                        showSplash = false
+                    }
+                    AnimatedVisibility(
+                        visible = showSplash,
+                        enter = scaleIn(),
+                        exit = scaleOut()
+                    ) {
+                        SplashScreen(
+                            modifier = Modifier
+                                .padding()
+                                .fillMaxSize()
                         )
                     }
+
+                    AnimatedVisibility(
+                        visible = !showSplash,
+                        enter = scaleIn()
+                    ) {
+                        if (isLoggedIn) {
+                            MateDashboard(snackBarHostState = SnackbarHostState())
+                        } else {
+                            LoginScreen(
+                                modifier = Modifier.padding(),
+                                snackBarHostState = snackBarHostState
+                            )
+                        }
+                    }
                 }
+
             }
         }
     }
