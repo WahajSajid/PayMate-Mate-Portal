@@ -32,7 +32,30 @@ class StateViewModel : ViewModel() {
     private val _name = mutableStateOf("")
     var name  = _name
 
+    private val _wallet = mutableStateOf("")
+    var wallet_amount = _wallet
+
+
+    private val _rent = mutableStateOf("")
+    var rent_amount = _rent
+
+
+    private val _otherDues = mutableStateOf("")
+    var other_amount = _otherDues
+
+    private val _showAccessDeniedDialog = mutableStateOf(false)
+    var showAccessDeniedDialog = _showAccessDeniedDialog
+
+    private val _accessDenied = mutableStateOf(false)
+    var accessDenied =  _accessDenied
+
+    private val _dialogTitle = mutableStateOf("")
+    var dialogTitle = _dialogTitle
+
+    private val _accessDeniedDialogMessage = mutableStateOf("")
+    var accessDeniedDialogMessage = _accessDeniedDialogMessage
+
     private val _id = mutableStateOf("")
-    private val id = _id
+    var mate_id = _id
 
 }

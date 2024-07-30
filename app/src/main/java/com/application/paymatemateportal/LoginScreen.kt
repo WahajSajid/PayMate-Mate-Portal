@@ -68,7 +68,7 @@ fun LoginScreen(
     snackBarHostState: SnackbarHostState,
 ) {
     if (stateViewModel.loginSuccessful.value) {
-        MateDashboard()
+        MateDashboard(snackBarHostState = snackBarHostState)
     } else {
         val context = LocalContext.current
         val viewModel :FirebaseViewModel = viewModel(factory = FirebaseViewModelFactory(context.applicationContext as App))
@@ -88,6 +88,7 @@ fun LoginScreen(
                         )
                     ) {
                         if (NetworkUtil.isNetworkAvailable(context)) {
+                            stateViewModel.dialogTitle.value = "Signing in..."
                             stateViewModel.showDialog.value = true
                             HasInternetAccess.hasInternetAccess(object : HasInternetAccessCallBack {
                                 override fun onInternetAvailable() {
@@ -237,7 +238,7 @@ private fun loginMate(
     databaseReference.child("mate_id").get().addOnSuccessListener {
         val id = it.value.toString()
         if (enteredMateUid == id) {
-            sharedPreferences.edit().putString("id", id).apply()
+            sharedPreferences.edit().putString("mate_id", id).apply()
             sharedPreferences.edit().putString("uid", enteredAdminUid).apply()
             sharedPreferences.edit().putBoolean("mate_loggedIn", true).apply()
             val getData =
@@ -253,7 +254,7 @@ private fun loginMate(
     }
 }
 
-private fun showSnackBar(
+fun showSnackBar(
     hostState: SnackbarHostState,
     stateViewModel: StateViewModel,
     message: String,
@@ -314,7 +315,7 @@ fun TextInputsComposable(
 
 @Preview
 @Composable
-fun DialogBox(message: String = "Signing in...", stateViewModel: StateViewModel = viewModel()) {
+fun DialogBox(stateViewModel: StateViewModel = viewModel()) {
     Dialog(
         onDismissRequest = {},
         properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false)
@@ -332,7 +333,7 @@ fun DialogBox(message: String = "Signing in...", stateViewModel: StateViewModel 
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 )
                 Text(
-                    text = message, fontFamily = FontFamily.Serif,
+                    text = stateViewModel.dialogTitle.value, fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 15.dp)
                 )

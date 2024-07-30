@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
                     enter = scaleIn()
                 ) {
                     if (isLoggedIn) {
-                        MateDashboard()
+                        MateDashboard(snackBarHostState = SnackbarHostState())
                     } else {
                         LoginScreen(
                             modifier = Modifier.padding(),
