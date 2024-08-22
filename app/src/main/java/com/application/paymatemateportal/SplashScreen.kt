@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -45,6 +46,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "Developed by CODEWORKS",
+                fontWeight = Bold,
                 color = colorResource(id = R.color.app_theme_color),
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)

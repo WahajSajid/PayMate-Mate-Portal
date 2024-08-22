@@ -1,6 +1,5 @@
 package com.application.paymatemateportal
 
-import android.app.Application
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.widget.Toast
