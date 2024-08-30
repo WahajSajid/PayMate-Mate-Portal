@@ -7,7 +7,7 @@ import com.google.firebase.database.FirebaseDatabase
 
 class App : Application() {
     lateinit var database: FirebaseDatabase
-        private set
+        private set 
     override fun onCreate() {
         super.onCreate()
         val options = FirebaseOptions.Builder()
